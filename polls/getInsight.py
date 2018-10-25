@@ -1,5 +1,6 @@
 import csv
 import codecs
+import storage
 from collections import Counter
 
 from utils import parseCSVFile, testCSVFileFormatMatching, isNumber, parseSubmissionTime
@@ -34,6 +35,8 @@ def getAuthorInfo(inputFile):
 
 	lines = parseCSVFile(inputFile)[1:]
 	lines = [ele for ele in lines if ele]
+
+	storage.saveData(storage.AUTHOR_TABLE, ("submission_id", "first_name", "last_name", "email", "country", "organization", "webpage", "person_num", "corresponding"), lines)
 
 	authorList = []
 	for authorInfo in lines:
@@ -102,6 +105,10 @@ def getReviewInfo(inputFile):
 	parsedResult = {}
 	lines = parseCSVFile(inputFile)
 	lines = [ele for ele in lines if ele]
+
+	storage.saveData(storage.REVIEW_TABLE,
+					 ("review_id", "submission_id", "review_assignment_id", "reviewer_name", "field_id", "review_comments", "evaluation_score", "score", "reviewer_first_name", "reviewer_last_name", "reviewer_email", "reviewer_id", "submission_date", "submission_time", "recommendation"), lines)
+
 	evaluation = [str(line[6]).replace("\r", "") for line in lines]
 	submissionIDs = set([str(line[1]) for line in lines])
 
@@ -169,6 +176,11 @@ def getSubmissionInfo(inputFile):
 	parsedResult = {}
 	lines = parseCSVFile(inputFile)[1:]
 	lines = [ele for ele in lines if ele]
+
+	storage.saveData(storage.SUBMISSION_TABLE,
+					 ("submission_id", "track_id", "track_name", "title", "authors", "submitted", "last_updated", "form_fields", "keywords", "decision", "notified", "reviews_sent", "abstract"),
+					 lines)
+
 	acceptedSubmission = [line for line in lines if str(line[9]) == 'accept']
 	rejectedSubmission = [line for line in lines if str(line[9]) == 'reject']
 
