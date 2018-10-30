@@ -11,6 +11,18 @@ import json
 from utils import parseCSVFileFromDjangoFile, isNumber, returnTestChartData
 from getInsight import parseAuthorCSVFile, getReviewScoreInfo, getAuthorInfo, getReviewInfo, getSubmissionInfo
 
+from auth import handle_login, handle_register
+from query import handle_query
+from state import handle_savestate, handle_loadstate
+
+routes = {
+	'login': handle_login,
+	'register': handle_register,
+	'query': handle_query,
+	'savestate': handle_savestate,
+	'loadstate': handle_loadstate,
+}
+
 # Create your views here.
 # Note: a view is a func taking the HTTP request and returns sth accordingly
 
@@ -23,6 +35,7 @@ def test(request):
 # Note: csr: cross site request, adding this to enable request from localhost
 @csrf_exempt
 def uploadCSV(request):
+	print request.POST['token']
 	print "Inside the upload function"
 	if request.FILES:
 		csvFile = request.FILES['file']
@@ -52,3 +65,18 @@ def uploadCSV(request):
 	else:
 		print "Not found the file!"
 		return HttpResponseNotFound('Page not found for CSV')
+
+def parse_body(request):
+	return json.load(request)
+
+@csrf_exempt
+def handle_request(request):
+	request_type = request.path_info.replace('/', '')
+
+	if request_type not in routes:
+		print "Cannot find request handler: " + request_type
+		return HttpResponseNotFound('404 not found')
+
+	params = parse_body(request)
+	response = routes[request_type](params)
+	return HttpResponse(json.dumps(response))

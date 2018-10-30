@@ -2,26 +2,62 @@ import db as DB
 import encryption as Encryption
 import re
 import time
+from django.views.decorators.csrf import csrf_exempt
 
 TOKEN_VALID_TIME = 60 * 60 * 2
 
 db = DB.DB()
+
+def handle_login(request):
+    token, message = login(request['username'], request['password'])
+    if token is None:
+        return {
+            'result': False,
+            'message': message
+        }
+    return {
+        'result': True,
+        'token': token,
+        'message': message
+    }
+
+
+def handle_register(request):
+    token, message = register(request['username'], request['password'])
+    if token is None:
+        return {
+            'result': False,
+            'message': message
+        }
+    return {
+        'result': True,
+        'token': token,
+        'message': message
+    }
 
 
 def is_valid_string(string):
     return re.match(r'[A-Za-z0-9@#$%^&+=]{5,12}', string)
 
 
+def generate_token(username):
+    token = Encryption.generate_token(Encryption.TOKEN_LENGTH)
+    db.insert(DB.TOKENS_TABLE, (username, token, int(time.time()) + TOKEN_VALID_TIME))
+    return token
+
 def register(username, password):
-    if not is_valid_string(username) or not is_valid_string(password):
-        return False
+    if not is_valid_string(username):
+        return None, 'Invalid Username'
+    if not is_valid_string(password):
+        return None, 'Invalid Password'
     result = db.execute_and_fetch_one('SELECT * FROM ' + DB.USER_TABLE + ' WHERE username = ?', (username,))
     if result is not None:
-        return False
+        return None, 'User already exists'
     salt = Encryption.generate_token(Encryption.SALT_LENGTH)
     hashed_password = Encryption.hash(password, salt)
     db.insert(DB.USER_TABLE, (username, salt, hashed_password))
-    return True
+
+    return generate_token(username), 'Registration success'
 
 
 def authenticate(username, password):
@@ -42,12 +78,11 @@ def verify_token(username, token):
 
 def login(username, password):
     if not authenticate(username, password):
-        return None
+        return None, 'Login failed'
 
-    token = Encryption.generate_token(Encryption.TOKEN_LENGTH)
-    db.insert(DB.TOKENS_TABLE, (username, token, int(time.time()) + TOKEN_VALID_TIME))
-    return token
+    return generate_token(username), 'Login success'
 
+'''
 db.setup()
 print(register('abcdef', 'abcdef'))
 token = login('abcdef', 'abcde')
@@ -55,3 +90,4 @@ print(token)
 token = login('abcdef', 'abcdef')
 print(token)
 print(verify_token('abcde', token))
+'''
