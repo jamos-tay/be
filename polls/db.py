@@ -73,7 +73,14 @@ class DB:
         conn = sqlite3.connect('data.db')
         c = conn.cursor()
         c.execute(statement, params)
-        result =  c.fetchone()
+        result = c.fetchone()
+        return result
+
+    def execute_and_fetch(self, statement, params):
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        c.execute(statement, params)
+        result = c.fetchall()
         return result
 
     def insert(self, table, params):
