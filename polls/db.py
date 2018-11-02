@@ -1,4 +1,5 @@
 import sqlite3
+import time
 
 USER_TABLE = 'User'
 TOKENS_TABLE = 'Tokens'
@@ -8,6 +9,9 @@ SUBMISSION_TABLE = 'Submission'
 STATE_TABLE = 'State'
 
 class DB:
+
+    def generate_id(self):
+        return int(round(time.time() * 1000))
 
     def reset(self):
         conn = sqlite3.connect('data.db')
@@ -61,10 +65,7 @@ class DB:
                   'review_file_id integer, ' +
                   'submission_file_id integer, ' +
                   'state_data text, ' +
-                  'FOREIGN KEY(username) REFERENCES ' + USER_TABLE + '(username),' 
-                  'FOREIGN KEY(author_file_id) REFERENCES ' + AUTHOR_TABLE + '(file_id),' +
-                  'FOREIGN KEY(review_file_id) REFERENCES ' + REVIEW_TABLE + '(file_id),' +
-                  'FOREIGN KEY(submission_file_id) REFERENCES ' + SUBMISSION_TABLE + '(file_id)' +
+                  'FOREIGN KEY(username) REFERENCES ' + USER_TABLE + '(username)' 
                   ')')
         conn.commit()
         conn.close()
@@ -102,7 +103,8 @@ class DB:
                 c.execute('INSERT INTO ' + table + ' (' + prepended_column_names + column_names + ') ' +
                           'VALUES (' + param_placeholders + ')', prepended_data + row)
             except Exception as e:
-                print str(e)
-                print "Could not insert " + str(row)
+                pass
+                # print str(e)
+                # print "Could not insert " + str(row)
         conn.commit()
         conn.close()

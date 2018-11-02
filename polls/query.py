@@ -9,7 +9,7 @@ QUERIES = {
         '''
         SELECT A.person_num, A.first_name, A.last_name, COUNT(*), COUNT(decision)
         FROM Author A 
-        LEFT JOIN Submission S ON A.submission_id = S.submission_id  AND S.decision = 'accept'
+        LEFT JOIN Submission S ON A.submission_id = S.submission_id AND S.decision = 'accept'
         GROUP BY A.person_num
         ORDER BY A.person_num ASC
         ''',
@@ -17,7 +17,7 @@ QUERIES = {
         '''
         SELECT A.organization, COUNT(*), COUNT(decision)
         FROM Author A 
-        LEFT JOIN Submission S ON A.submission_id = S.submission_id  AND S.decision = 'accept'
+        LEFT JOIN Submission S ON A.submission_id = S.submission_id AND S.decision = 'accept'
         GROUP BY A.organization
         ORDER BY A.organization ASC
         ''',
@@ -39,7 +39,7 @@ QUERIES = {
         '''
         SELECT A.country, COUNT(*), COUNT(decision)
         FROM Author A 
-        LEFT JOIN Submission S ON A.submission_id = S.submission_id  AND S.decision = 'accept'
+        LEFT JOIN Submission S ON A.submission_id = S.submission_id AND S.decision = 'accept'
         GROUP BY A.country
         ORDER BY A.country ASC
         ''',
@@ -63,12 +63,12 @@ QUERIES = {
 
 @csrf_exempt
 def handle_query(request):
-    query_type = request['queryType']
-    if query_type not in QUERIES:
+    if 'queryType' not in request or request['queryType'] not in QUERIES:
         return {
             'result': False,
             'message': 'Invalid query type'
         }
+    query_type = request['queryType']
     params = []
     if 'params' in request:
         params = request['params']

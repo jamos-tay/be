@@ -1,26 +1,21 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-from django.shortcuts import render
+import auth
+import json
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
-from django.views.decorators.csrf import csrf_exempt
-
-import json
-
-from utils import parseCSVFileFromDjangoFile, isNumber, returnTestChartData
-from getInsight import parseAuthorCSVFile, getReviewScoreInfo, getAuthorInfo, getReviewInfo, getSubmissionInfo
-
+from route import Route
 from auth import handle_login, handle_register
 from query import handle_query
 from state import handle_savestate, handle_loadstate
+from upload import handle_upload
 
 routes = {
-	'login': handle_login,
-	'register': handle_register,
-	'query': handle_query,
-	'savestate': handle_savestate,
-	'loadstate': handle_loadstate,
+	'login': Route(handle_login, False),
+	'register': Route(handle_register, False),
+	'upload': Route(handle_upload, False),
+	'query': Route(handle_query),
+	'savestate': Route(handle_savestate),
+	'loadstate': Route(handle_loadstate),
 }
 
 # Create your views here.
@@ -31,40 +26,6 @@ def index(request):
 
 def test(request):
 	return HttpResponse("<h1>This is the very first HTTP request!</h1>")
-
-# Note: csr: cross site request, adding this to enable request from localhost
-@csrf_exempt
-def uploadCSV(request):
-	print request.POST['token']
-	print "Inside the upload function"
-	if request.FILES:
-		csvFile = request.FILES['file']
-		fileName = str(csvFile.name)
-		rowContent = ""
-
-		if "author.csv" in fileName:
-			rowContent = getAuthorInfo(csvFile)
-		elif "score.csv" in fileName:
-			rowContent = getReviewScoreInfo(csvFile)
-		elif "review.csv" in fileName:
-			rowContent = getReviewInfo(csvFile)
-		elif "submission.csv" in fileName:
-			rowContent = getSubmissionInfo(csvFile)
-		else:
-			rowContent = returnTestChartData(csvFile)
-
-		print type(csvFile.name)
-
-		if request.POST:
-	# current problem: request from axios not recognized as POST
-			# csvFile = request.FILES['file']
-			print "Now we got the csv file"
-
-		return HttpResponse(json.dumps(rowContent))
-		# return HttpResponse("Got the CSV file.")
-	else:
-		print "Not found the file!"
-		return HttpResponseNotFound('Page not found for CSV')
 
 def parse_body(request):
 	return json.load(request)
@@ -77,6 +38,20 @@ def handle_request(request):
 		print "Cannot find request handler: " + request_type
 		return HttpResponseNotFound('404 not found')
 
-	params = parse_body(request)
-	response = routes[request_type](params)
+	route = routes[request_type]
+
+	print "Request " + request_type
+
+	if request.FILES:
+		response = route.handler(request)
+	else:
+		params = parse_body(request)
+		print params['token']
+		if route.requires_auth and ('token' not in params or not auth.verify_token(params['token'])):
+			return HttpResponse(json.dumps({
+				'result': False,
+				'message': 'Not authorized'
+			}))
+		response = route.handler(params)
+
 	return HttpResponse(json.dumps(response))
