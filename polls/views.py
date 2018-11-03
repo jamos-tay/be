@@ -5,14 +5,14 @@ from django.http import HttpResponse
 from django.http import HttpResponseNotFound
 from route import Route
 from auth import handle_login, handle_register
-from query import handle_query
+from statistics import handle_query
 from state import handle_savestate, handle_loadstate
 from upload import handle_upload
 
 routes = {
 	'login': Route(handle_login, False),
 	'register': Route(handle_register, False),
-	'upload': Route(handle_upload, False),
+	'upload': Route(handle_upload),
 	'query': Route(handle_query),
 	'savestate': Route(handle_savestate),
 	'loadstate': Route(handle_loadstate),
@@ -43,10 +43,14 @@ def handle_request(request):
 	print "Request " + request_type
 
 	if request.FILES:
+		if route.requires_auth and ('token' not in request.POST or not auth.verify_token(request.POST['token'])):
+			return HttpResponse(json.dumps({
+				'result': False,
+				'message': 'Not authorized'
+			}))
 		response = route.handler(request)
 	else:
 		params = parse_body(request)
-		print params['token']
 		if route.requires_auth and ('token' not in params or not auth.verify_token(params['token'])):
 			return HttpResponse(json.dumps({
 				'result': False,

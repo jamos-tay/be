@@ -24,7 +24,7 @@ def parseAuthorCSVFile(inputFile):
 
 	return parsedResult
 
-def getAuthorInfo(inputFile):
+def getAuthorInfo(username, inputFile):
 	"""
 	author.csv: header row, author names with affiliations, countries, emails
 	data format:
@@ -35,7 +35,7 @@ def getAuthorInfo(inputFile):
 	lines = parseCSVFile(inputFile)[1:]
 	lines = [ele for ele in lines if ele]
 
-	storage.save_data('', storage.AUTHOR_TABLE, ["submission_id", "first_name", "last_name", "email", "country", "organization", "webpage", "person_num", "corresponding"], lines)
+	storage.save_data(username, storage.AUTHOR_TABLE, ["submission_id", "first_name", "last_name", "email", "country", "organization", "webpage", "person_num", "corresponding"], lines)
 
 	authorList = []
 	for authorInfo in lines:
@@ -87,7 +87,7 @@ def getReviewScoreInfo(inputFile):
 
 	return {'infoType': 'reviewScore', 'infoData': parsedResult}
 
-def getReviewInfo(inputFile):
+def getReviewInfo(username, inputFile):
 	"""
 	review.csv
 	data format: 
@@ -105,7 +105,7 @@ def getReviewInfo(inputFile):
 	lines = parseCSVFile(inputFile)
 	lines = [ele for ele in lines if ele]
 
-	storage.save_data('', storage.REVIEW_TABLE,
+	storage.save_data(username, storage.REVIEW_TABLE,
 					 ["review_id", "submission_id", "review_assignment_id", "reviewer_name", "field_id", "review_comments", "evaluation_score", "score", "reviewer_first_name", "reviewer_last_name", "reviewer_email", "reviewer_id", "submission_date", "submission_time", "recommendation"], lines)
 
 	evaluation = [str(line[6]).replace("\r", "") for line in lines]
@@ -165,7 +165,7 @@ def getReviewInfo(inputFile):
 
 	return {'infoType': 'review', 'infoData': parsedResult}
 
-def getSubmissionInfo(inputFile):
+def getSubmissionInfo(username, inputFile):
 	"""
 	submission.csv
 	data format: 
@@ -176,7 +176,7 @@ def getSubmissionInfo(inputFile):
 	lines = parseCSVFile(inputFile)[1:]
 	lines = [ele for ele in lines if ele]
 
-	storage.save_data('', storage.SUBMISSION_TABLE,
+	storage.save_data(username, storage.SUBMISSION_TABLE,
 					 ["submission_id", "track_id", "track_name", "title", "authors", "submitted", "last_updated", "form_fields", "keywords", "decision", "notified", "reviews_sent", "abstract"],
 					 lines)
 

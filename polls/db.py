@@ -7,6 +7,17 @@ AUTHOR_TABLE = 'Author'
 REVIEW_TABLE = 'Review'
 SUBMISSION_TABLE = 'Submission'
 STATE_TABLE = 'State'
+FILE_TABLE = 'File'
+
+AUTHOR_FILE_ID = 'author_file_id'
+REVIEW_FILE_ID = 'review_file_id'
+SUBMISSION_FILE_ID = 'submission_file_id'
+
+ID_MAP = {
+    AUTHOR_TABLE : AUTHOR_FILE_ID,
+    REVIEW_TABLE : REVIEW_FILE_ID,
+    SUBMISSION_TABLE : SUBMISSION_FILE_ID
+}
 
 class DB:
 
@@ -22,6 +33,7 @@ class DB:
         c.execute('DROP TABLE IF EXISTS ' + REVIEW_TABLE)
         c.execute('DROP TABLE IF EXISTS ' + SUBMISSION_TABLE)
         c.execute('DROP TABLE IF EXISTS ' + STATE_TABLE)
+        c.execute('DROP TABLE IF EXISTS ' + FILE_TABLE)
         conn.commit()
         conn.close()
         self.setup()
@@ -61,10 +73,17 @@ class DB:
         c.execute('CREATE TABLE IF NOT EXISTS ' + STATE_TABLE + ' (' +
                   'state_id integer PRIMARY KEY, ' +
                   'username text, ' +
-                  'author_file_id integer, ' +
-                  'review_file_id integer, ' +
-                  'submission_file_id integer, ' +
+                  AUTHOR_FILE_ID + ' integer, ' +
+                  REVIEW_FILE_ID + ' integer, ' +
+                  SUBMISSION_FILE_ID + ' integer, ' +
                   'state_data text, ' +
+                  'FOREIGN KEY(username) REFERENCES ' + USER_TABLE + '(username)' 
+                  ')')
+        c.execute('CREATE TABLE IF NOT EXISTS ' + FILE_TABLE + ' (' +
+                  'username text PRIMARY KEY, ' +
+                  AUTHOR_FILE_ID + ' integer, ' +
+                  REVIEW_FILE_ID + ' integer, ' +
+                  SUBMISSION_FILE_ID + ' integer, ' +
                   'FOREIGN KEY(username) REFERENCES ' + USER_TABLE + '(username)' 
                   ')')
         conn.commit()
@@ -84,10 +103,18 @@ class DB:
         result = c.fetchall()
         return result
 
-    def insert(self, table, params):
+    def execute(self, statement, params):
         conn = sqlite3.connect('data.db')
         c = conn.cursor()
-        c.execute('INSERT INTO ' + table + ' VALUES (' + ','.join('?' * len(params)) + ')', params)
+        c.execute(statement, params)
+        conn.commit()
+        conn.close()
+
+    def insert(self, table, params, ignore=False):
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        ignore_clause = 'OR IGNORE' if ignore else ''
+        c.execute('INSERT ' + ignore_clause + ' INTO ' + table + ' VALUES (' + ','.join('?' * len(params)) + ')', params)
         conn.commit()
         conn.close()
 

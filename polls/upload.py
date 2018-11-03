@@ -11,20 +11,25 @@ import json
 
 @csrf_exempt
 def handle_upload(request):
-	print "Inside the upload function"
+	if 'username' not in request.POST:
+		return {
+			'result': False,
+			'message': 'Missing username'
+		}
+	username = request.POST['username']
 	if request.FILES:
 		csvFile = request.FILES['file']
 		fileName = str(csvFile.name)
 		rowContent = ""
 
 		if "author.csv" in fileName:
-			rowContent = getAuthorInfo(csvFile)
+			rowContent = getAuthorInfo(username, csvFile)
 		elif "score.csv" in fileName:
 			rowContent = getReviewScoreInfo(csvFile)
 		elif "review.csv" in fileName:
-			rowContent = getReviewInfo(csvFile)
+			rowContent = getReviewInfo(username, csvFile)
 		elif "submission.csv" in fileName:
-			rowContent = getSubmissionInfo(csvFile)
+			rowContent = getSubmissionInfo(username, csvFile)
 		else:
 			rowContent = returnTestChartData(csvFile)
 
@@ -40,6 +45,6 @@ def handle_upload(request):
 	else:
 		print "Not found the file!"
 		return {
-            result : False,
+            'result' : False,
             'message' : 'Page not found for CSV'
         }
