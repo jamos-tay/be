@@ -43,7 +43,7 @@ def handle_request(request):
 	print "Request " + request_type
 
 	if request.FILES:
-		if route.requires_auth and ('token' not in request.POST or not auth.verify_token(request.POST['token'])):
+		if route.requires_auth and ('token' not in request.POST or 'username' not in request.POST or not auth.verify_token(request.POST['token'], request.POST['username'])):
 			return HttpResponse(json.dumps({
 				'result': False,
 				'message': 'Not authorized'
@@ -51,7 +51,7 @@ def handle_request(request):
 		response = route.handler(request)
 	else:
 		params = parse_body(request)
-		if route.requires_auth and ('token' not in params or not auth.verify_token(params['token'])):
+		if route.requires_auth and ('token' not in params or 'username' not in params or not auth.verify_token(params['token'], params['username'])):
 			return HttpResponse(json.dumps({
 				'result': False,
 				'message': 'Not authorized'

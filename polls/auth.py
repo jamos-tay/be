@@ -71,8 +71,8 @@ def authenticate(username, password):
     return result is not None
 
 
-def verify_token(token):
-    result = db.execute_and_fetch_one('SELECT expiry FROM ' + DB.TOKENS_TABLE + ' WHERE token = ?', (token,))
+def verify_token(token, username):
+    result = db.execute_and_fetch_one('SELECT expiry FROM ' + DB.TOKENS_TABLE + ' WHERE token = ? AND username = ?', (token, username))
     return result is not None and result[0] >= int(time.time())
 
 

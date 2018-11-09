@@ -1,7 +1,10 @@
 from django.views.decorators.csrf import csrf_exempt
 import db as DB
+import storage as Storage
 
 db = DB.DB()
+
+FILE_QUERY = 'SELECT author_file_id, review_file_id, submission_file_id FROM File WHERE username = ?'
 
 STATE_SELECT = '''
 SELECT author_file_id, review_file_id, submission_file_id, state_data
@@ -34,9 +37,17 @@ def handle_savestate(request):
         }
     state_id = db.generate_id()
     username = request['username']
-    author_file_id = request['authorFileId'] if 'authorFileId' in request else ''
-    submission_file_id = request['submissionFileId'] if 'submissionFileId' in request else ''
-    review_file_id = request['reviewFileId'] if 'reviewFileId' in request else ''
+
+    files = db.execute_and_fetch_one(FILE_QUERY, (username,))
+    if files is None:
+        return {
+            'result': False,
+            'message': 'Invalid username'
+        }
+
+    author_file_id = files[0]
+    review_file_id = files[1]
+    submission_file_id = files[2]
     state_data = request['stateData'] if 'stateData' in request else ''
     db.insert('State', (state_id, username, author_file_id, submission_file_id, review_file_id, state_data))
     return {
@@ -51,13 +62,22 @@ def handle_loadstate(request):
             'result': False,
             'message': 'Missing state id'
         }
+    if 'username' not in request:
+        return {
+            'result': False,
+            'message': 'Missing username'
+        }
+    username = request['username']
     result = db.execute_and_fetch_one(STATE_SELECT, (decode_state(request['stateId']),))
-    if len(result) == 0:
+    if result is None:
         return {
             'result': False,
             'message': 'Cannot find state id'
         }
+    Storage.update_file_data(username, Storage.AUTHOR_TABLE, result[0])
+    Storage.update_file_data(username, Storage.REVIEW_TABLE, result[1])
+    Storage.update_file_data(username, Storage.SUBMISSION_TABLE, result[2])
     return {
         'result': True,
-        'data': result
+        'data': result[3]
     }
