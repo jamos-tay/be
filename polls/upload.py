@@ -11,14 +11,14 @@ import json
 
 @csrf_exempt
 def handle_upload(request):
-	if 'username' not in request.POST:
+	if 'username' not in request:
 		return {
 			'result': False,
 			'message': 'Missing username'
 		}
-	username = request.POST['username']
-	if request.FILES:
-		csvFile = request.FILES['file']
+	username = request['username']
+	if request['file']:
+		csvFile = request['file']['file']
 		fileName = str(csvFile.name)
 		rowContent = ""
 
@@ -35,7 +35,7 @@ def handle_upload(request):
 
 		print type(csvFile.name)
 
-		if request.POST:
+		if request:
 	# current problem: request from axios not recognized as POST
 			# csvFile = request.FILES['file']
 			print "Now we got the csv file"

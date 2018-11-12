@@ -43,19 +43,23 @@ def handle_request(request):
 	print "Request " + request_type
 
 	if request.FILES:
-		if route.requires_auth and ('token' not in request.POST or 'username' not in request.POST or not auth.verify_token(request.POST['token'], request.POST['username'])):
-			return HttpResponse(json.dumps({
-				'result': False,
-				'message': 'Not authorized'
-			}))
-		response = route.handler(request)
+		params = request.POST.copy()
+		params['file'] = request.FILES
 	else:
 		params = parse_body(request)
-		if route.requires_auth and ('token' not in params or 'username' not in params or not auth.verify_token(params['token'], params['username'])):
+	if route.requires_auth:
+		if 'HTTP_AUTHORIZATION' not in request.META:
 			return HttpResponse(json.dumps({
 				'result': False,
-				'message': 'Not authorized'
+				'message': 'Missing Auth Token'
 			}))
-		response = route.handler(params)
+		username = auth.verify_token(request.META['HTTP_AUTHORIZATION'])
+		if username is None:
+			return HttpResponse(json.dumps({
+				'result': False,
+				'message': 'Invalid Token'
+			}))
+		params['username'] = username
+	response = route.handler(params)
 
 	return HttpResponse(json.dumps(response))
