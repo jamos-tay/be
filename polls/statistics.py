@@ -123,7 +123,7 @@ def handle_query(request):
     if files is None:
         return {
             'result': False,
-            'message': 'Invalid username'
+            'message': 'File not found'
         }
 
     query_type = request['queryType']
