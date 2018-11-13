@@ -10,9 +10,9 @@ d.setup()
 
 def save_data(username, type, columns, data):
     file_id = d.generate_id()
-    d.insert_many(type, ['file_id', 'username'], [file_id, username], columns, data)
+    num_failed = d.insert_many(type, ['file_id', 'username'], [file_id, username], columns, data)
     update_file_data(username, type, file_id)
-    return file_id
+    return num_failed
 
 def update_file_data(username, type, file_id):
     d.insert('File', (username, '', '', ''), True)

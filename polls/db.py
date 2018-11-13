@@ -125,13 +125,15 @@ class DB:
         prepended_column_names = '' if len(prepended_columns) == 0 else ','.join(prepended_columns) + ','
         column_names = ','.join(columns)
         param_placeholders = ','.join('?' * (len(prepended_data) + len(data[0])))
+        num_failed = 0
         for row in data:
             try:
                 c.execute('INSERT INTO ' + table + ' (' + prepended_column_names + column_names + ') ' +
                           'VALUES (' + param_placeholders + ')', prepended_data + row)
             except Exception as e:
-                pass
-                # print str(e)
-                # print "Could not insert " + str(row)
+                num_failed += 1
+                print str(e)
+                print "Could not insert " + str(row)
         conn.commit()
         conn.close()
+        return num_failed
