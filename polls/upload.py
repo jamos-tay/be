@@ -17,19 +17,26 @@ def handle_upload(request):
 			'message': 'Missing username'
 		}
 	username = request['username']
+	if 'mapping' not in request:
+		return {
+			'result': False,
+			'message': 'Missing mapping'
+		}
+	mapping = request['mapping'].split(',')
+
 	if request['file']:
 		csvFile = request['file']['file']
 		fileName = str(csvFile.name)
 		rowContent = ""
 
 		if "author.csv" in fileName:
-			rowContent = getAuthorInfo(username, csvFile)
+			rowContent = getAuthorInfo(username, mapping, csvFile)
 		elif "score.csv" in fileName:
 			rowContent = getReviewScoreInfo(csvFile)
 		elif "review.csv" in fileName:
-			rowContent = getReviewInfo(username, csvFile)
+			rowContent = getReviewInfo(username, mapping, csvFile)
 		elif "submission.csv" in fileName:
-			rowContent = getSubmissionInfo(username, csvFile)
+			rowContent = getSubmissionInfo(username, mapping, csvFile)
 		else:
 			rowContent = returnTestChartData(csvFile)
 

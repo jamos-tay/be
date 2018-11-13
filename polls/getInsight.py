@@ -24,7 +24,7 @@ def parseAuthorCSVFile(inputFile):
 
 	return parsedResult
 
-def getAuthorInfo(username, inputFile):
+def getAuthorInfo(username, mapping, inputFile):
 	"""
 	author.csv: header row, author names with affiliations, countries, emails
 	data format:
@@ -35,7 +35,9 @@ def getAuthorInfo(username, inputFile):
 	lines = parseCSVFile(inputFile)[1:]
 	lines = [ele for ele in lines if ele]
 
-	num_failed = storage.save_data(username, storage.AUTHOR_TABLE, ["submission_id", "first_name", "last_name", "email", "country", "organization", "webpage", "person_num", "corresponding"], lines)
+	print "map" + str(mapping)
+	num_failed = storage.save_data(username, storage.AUTHOR_TABLE, mapping, lines)
+	#  ["submission_id", "first_name", "last_name", "email", "country", "organization", "webpage", "person_num", "corresponding"]
 
 	authorList = []
 	for authorInfo in lines:
@@ -87,7 +89,7 @@ def getReviewScoreInfo(inputFile):
 
 	return {'infoType': 'reviewScore', 'infoData': parsedResult}
 
-def getReviewInfo(username, inputFile):
+def getReviewInfo(username, mapping, inputFile):
 	"""
 	review.csv
 	data format: 
@@ -106,7 +108,8 @@ def getReviewInfo(username, inputFile):
 	lines = [ele for ele in lines if ele]
 
 	num_failed = storage.save_data(username, storage.REVIEW_TABLE,
-					 ["review_id", "submission_id", "review_assignment_id", "reviewer_name", "field_id", "review_comments", "evaluation_score", "score", "reviewer_first_name", "reviewer_last_name", "reviewer_email", "reviewer_id", "submission_date", "submission_time", "recommendation"], lines)
+					mapping, lines)
+    #  ["review_id", "submission_id", "review_assignment_id", "reviewer_name", "field_id", "review_comments", "evaluation_score", "score", "reviewer_first_name", "reviewer_last_name", "reviewer_email", "reviewer_id", "submission_date", "submission_time", "recommendation"]
 
 	evaluation = [str(line[6]).replace("\r", "") for line in lines]
 	submissionIDs = set([str(line[1]) for line in lines])
@@ -165,7 +168,7 @@ def getReviewInfo(username, inputFile):
 
 	return {'infoType': 'review', 'infoData': parsedResult, 'num_failed': num_failed, 'result': True}
 
-def getSubmissionInfo(username, inputFile):
+def getSubmissionInfo(username, mapping, inputFile):
 	"""
 	submission.csv
 	data format: 
@@ -177,8 +180,8 @@ def getSubmissionInfo(username, inputFile):
 	lines = [ele for ele in lines if ele]
 
 	num_failed = storage.save_data(username, storage.SUBMISSION_TABLE,
-					 ["submission_id", "track_id", "track_name", "title", "authors", "submitted", "last_updated", "form_fields", "keywords", "decision", "notified", "reviews_sent", "abstract"],
-					 lines)
+					 mapping, lines)
+# ["submission_id", "track_id", "track_name", "title", "authors", "submitted", "last_updated", "form_fields", "keywords", "decision", "notified", "reviews_sent", "abstract"],
 
 	acceptedSubmission = [line for line in lines if str(line[9]) == 'accept']
 	rejectedSubmission = [line for line in lines if str(line[9]) == 'reject']
