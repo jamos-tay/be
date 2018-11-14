@@ -49,7 +49,7 @@ def handle_savestate(request):
     review_file_id = files[1]
     submission_file_id = files[2]
     state_data = request['stateData'] if 'stateData' in request else ''
-    db.insert('State', (state_id, username, author_file_id, submission_file_id, review_file_id, state_data))
+    db.insert('State', (state_id, username, author_file_id, review_file_id, submission_file_id, state_data))
     return {
         'result': True,
         'stateId': encode_state(state_id)
